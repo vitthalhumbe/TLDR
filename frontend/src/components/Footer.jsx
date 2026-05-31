@@ -26,7 +26,7 @@ export default function Footer() {
         </div>
       </div>
       <div className="max-w-6xl mx-auto text-center md:text-left flex flex-col md:flex-row justify-between items-center">
-        <p>© 2024 TL;DR. All rights reserved.</p>
+        <p>© 2026 TL;DR.</p>
       </div>
     </footer>
   );

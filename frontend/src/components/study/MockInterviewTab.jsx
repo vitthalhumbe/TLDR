@@ -1,12 +1,40 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import FadeIn from "@/components/FadeIn";
+import { supabase } from "@/lib/supabase";
+import ReactMarkdown from "react-markdown";
+
+async function authHeaders() {
+  const { data } = await supabase.auth.getSession();
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${data.session?.access_token}`,
+  };
+}
+function TypingMessage({ text }) {
+  const [displayed, setDisplayed] = useState("");
+  const indexRef = useRef(0);
+
+  useEffect(() => {
+    setDisplayed("");
+    indexRef.current = 0;
+    const interval = setInterval(() => {
+      indexRef.current += 1;
+      setDisplayed(text.slice(0, indexRef.current));
+      if (indexRef.current >= text.length) clearInterval(interval);
+    }, 8);
+    return () => clearInterval(interval);
+  }, [text]);
+
+  return <span>{displayed}</span>;
+}
 
 export default function MockInterviewTab({ materialId }) {
   const [session, setSession] = useState(null);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(null);
+  const [lastAssistantIndex, setLastAssistantIndex] = useState(null);
   const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   const startMock = async () => {
@@ -14,11 +42,14 @@ export default function MockInterviewTab({ materialId }) {
     try {
       const res = await fetch(`${API}/mock/start`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: await authHeaders(),
         body: JSON.stringify({ material_id: materialId }),
       });
+
       const json = await res.json();
-      setSession({ session_id: json.session_id, messages: [{ role: "assistant", content: json.message }] });
+      const msgs = [{ role: "assistant", content: json.message }];
+      setSession({ session_id: json.session_id, messages: msgs });
+      setLastAssistantIndex(0);
     } catch { } finally { setLoading(false); }
   };
 
@@ -31,7 +62,7 @@ export default function MockInterviewTab({ materialId }) {
     try {
       const res = await fetch(`${API}/mock/answer`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: await authHeaders(),
         body: JSON.stringify({
           session_id: session.session_id,
           material_id: materialId,
@@ -40,8 +71,10 @@ export default function MockInterviewTab({ materialId }) {
         }),
       });
       const json = await res.json();
-      const updated = [...next, { role: "assistant", content: json.message }];
+      const assistantMsg = { role: "assistant", content: json.message };
+      const updated = [...next, assistantMsg];
       setSession({ ...session, messages: updated });
+      setLastAssistantIndex(updated.length - 1);
       if (json.done && json.result) {
         setDone({ score: json.result.score, total: json.result.total, feedback: json.result.feedback });
       }
@@ -66,9 +99,7 @@ export default function MockInterviewTab({ materialId }) {
             <svg className="w-10 h-10 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
           </div>
           <h4 className="text-2xl font-bold mb-4">Ready to test yourself?</h4>
-          <p className="text-gray-500 mb-8 max-w-md leading-relaxed">
-            The AI acts as your interviewer. Answer the questions naturally. You'll receive a full performance review at the end.
-          </p>
+          <p className="text-gray-500 mb-8 max-w-md leading-relaxed">The AI acts as your interviewer. Answer the questions naturally. You'll receive a full performance review at the end.</p>
           <button onClick={startMock} disabled={loading} className="px-8 py-4 rounded-full font-bold text-white bg-black hover:bg-gray-800 transition-colors shadow-md disabled:opacity-50">
             {loading ? "Preparing Interview..." : "Start Interview →"}
           </button>
@@ -78,16 +109,18 @@ export default function MockInterviewTab({ materialId }) {
       {done && (
         <div className="flex-1 overflow-y-auto p-10 text-center bg-[#fafafa]">
           <p className="text-xs font-bold tracking-widest text-gray-400 uppercase mb-4">Interview Complete</p>
-          <div className="inline-flex items-center justify-center w-40 h-40 rounded-full border-8 border-gray-100 mb-8 relative bg-white">
+          <div className="inline-flex items-center justify-center w-40 h-40 rounded-full border-8 border-gray-100 mb-8 bg-white">
             <span className={`text-5xl font-black ${done.score / done.total >= 0.6 ? "text-green-500" : "text-red-500"}`}>
               {done.score}/{done.total}
             </span>
           </div>
           <div className="bg-white border border-gray-200 rounded-[2rem] p-8 max-w-2xl w-full text-left mx-auto mb-8 shadow-sm">
             <p className="text-xs font-bold uppercase tracking-widest text-purple-500 mb-4 bg-purple-50 px-3 py-1.5 rounded-full inline-block">Detailed Feedback</p>
-            <p className="text-gray-700 leading-loose text-md">{done.feedback}</p>
+            <div className="prose prose-sm max-w-none text-gray-700 leading-loose">
+  <ReactMarkdown>{done.feedback}</ReactMarkdown>
+</div>
           </div>
-          <button onClick={() => { setSession(null); setDone(null); }} className="px-8 py-3 bg-black text-white font-bold rounded-full hover:bg-gray-800 transition-colors">
+          <button onClick={() => { setSession(null); setDone(null); setLastAssistantIndex(null); }} className="px-8 py-3 bg-black text-white font-bold rounded-full hover:bg-gray-800 transition-colors">
             Restart Interview
           </button>
         </div>
@@ -99,10 +132,29 @@ export default function MockInterviewTab({ materialId }) {
             {session.messages.map((m, i) => (
               <div key={i} className={`flex flex-col max-w-[85%] ${m.role === "user" ? "ml-auto items-end" : "mr-auto items-start"}`}>
                 <div className={`p-4 rounded-3xl ${m.role === "user" ? "bg-black text-white rounded-br-sm" : "bg-white border border-gray-200 text-gray-800 shadow-sm rounded-bl-sm"}`}>
-                  {m.content}
+                  {m.role === "assistant" && i === lastAssistantIndex
+  ? <TypingMessage text={m.content} />
+  : m.role === "assistant"
+  ? (
+    <div className="prose prose-sm max-w-none prose-p:leading-relaxed prose-p:my-1 prose-ul:my-1 prose-li:my-0">
+      <ReactMarkdown>{m.content}</ReactMarkdown>
+    </div>
+  )
+  : m.content}
                 </div>
               </div>
             ))}
+            {loading && (
+              <div className="mr-auto">
+                <div className="p-4 rounded-3xl bg-white border border-gray-200 shadow-sm rounded-bl-sm">
+                  <div className="flex gap-1 py-1">
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-75" />
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-150" />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
           <div className="p-4 bg-white border-t border-gray-100">
             <div className="flex flex-col bg-gray-50 border border-gray-200 rounded-[1.5rem] p-2 focus-within:border-black focus-within:ring-1 focus-within:ring-black transition-all">

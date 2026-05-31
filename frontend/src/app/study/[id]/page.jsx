@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getMaterial } from "@/lib/api";
+import { notFound } from "next/navigation";
 
 import SummaryTab from "@/components/study/SummaryTab";
 import FlashcardsTab from "@/components/study/FlashcardsTab";
@@ -12,17 +13,24 @@ import MockInterviewTab from "@/components/study/MockInterviewTab";
 export default function StudyPage() {
   const { id } = useParams();
   const router = useRouter();
-  
+
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [tab, setTab] = useState("summary");
 
   useEffect(() => {
-    getMaterial(id)
-      .then(setData)
-      .catch(() => setError("Failed to load material"))
-      .finally(() => setLoading(false));
+    try {
+      getMaterial(id)
+        .then(setData)
+        .catch(() => setError("Failed to load material"))
+        .finally(() => setLoading(false));
+    } catch (e) {
+      const status = e?.response?.status;
+      if (status === 404 || status === 403) notFound();
+    }
+
+
   }, [id]);
 
   const tabs = [
@@ -55,12 +63,12 @@ export default function StudyPage() {
 
   return (
     <div className="min-h-screen bg-[#fafafa] text-gray-900 font-sans flex flex-col overflow-x-hidden">
-      
+
       {/* HEADER */}
       <header className="sticky top-0 z-50 flex flex-col md:flex-row md:items-center justify-between px-6 md:px-12 py-4 bg-[#fafafa]/90 backdrop-blur-md border-b border-gray-200 gap-4">
         <div className="flex items-center gap-4">
-          <button 
-            onClick={() => router.push("/")} 
+          <button
+            onClick={() => router.push("/")}
             className="w-10 h-10 flex items-center justify-center bg-white border border-gray-200 text-gray-600 rounded-full hover:bg-gray-50 hover:text-black transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
@@ -74,18 +82,17 @@ export default function StudyPage() {
             </span>
           </div>
         </div>
-        
+
         {/* Scrollable Tab Bar */}
         <div className="flex overflow-x-auto whitespace-nowrap scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0">
           {tabs.map(t => (
-            <button 
-              key={t.id} 
-              onClick={() => setTab(t.id)} 
-              className={`px-5 py-2 text-xs font-bold tracking-widest transition-all rounded-full ${
-                tab === t.id 
-                  ? "bg-black text-white shadow-md" 
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`px-5 py-2 text-xs font-bold tracking-widest transition-all rounded-full ${tab === t.id
+                  ? "bg-black text-white shadow-md"
                   : "text-gray-500 hover:text-gray-900 hover:bg-gray-200/50"
-              }`}
+                }`}
             >
               {t.label}
             </button>
@@ -101,7 +108,7 @@ export default function StudyPage() {
         {tab === "tutor" && <TutorTab materialId={id} />}
         {tab === "mock" && <MockInterviewTab materialId={id} />}
       </div>
-      
+
     </div>
   );
 }

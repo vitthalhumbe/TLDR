@@ -1,11 +1,39 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import FadeIn from "@/components/FadeIn";
+import { supabase } from "@/lib/supabase";
+import ReactMarkdown from "react-markdown";
+
+async function authHeaders() {
+  const { data } = await supabase.auth.getSession();
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${data.session?.access_token}`,
+  };
+}
+function TypingMessage({ text }) {
+  const [displayed, setDisplayed] = useState("");
+  const indexRef = useRef(0);
+
+  useEffect(() => {
+    setDisplayed("");
+    indexRef.current = 0;
+    const interval = setInterval(() => {
+      indexRef.current += 1;
+      setDisplayed(text.slice(0, indexRef.current));
+      if (indexRef.current >= text.length) clearInterval(interval);
+    }, 8);
+    return () => clearInterval(interval);
+  }, [text]);
+
+  return <span>{displayed}</span>;
+}
 
 export default function TutorTab({ materialId }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [streamingIndex, setStreamingIndex] = useState(null);
   const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   const sendMessage = async () => {
@@ -16,30 +44,32 @@ export default function TutorTab({ materialId }) {
     setInput("");
     setLoading(true);
 
+    const placeholderIndex = next.length;
+    setMessages(m => [...m, { role: "assistant", content: "" }]);
+    setStreamingIndex(placeholderIndex);
+
     try {
       const res = await fetch(`${API}/tutor/chat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: await authHeaders(),
         body: JSON.stringify({ material_id: materialId, messages: next }),
       });
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let reply = "";
-      setMessages(m => [...m, { role: "assistant", content: "" }]);
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         const chunk = decoder.decode(value);
-        const lines = chunk.split("\n");
-        for (const line of lines) {
+        for (const line of chunk.split("\n")) {
           if (line.startsWith("data: ")) {
-            const text = line.slice(6);
-            if (text === "[DONE]") break;
-            reply += text;
+           const text = line.slice(6).replace(/\{\{NL\}\}/g, "\n");
+if (text === "[DONE]") break;
+reply += text;
             setMessages(m => {
               const updated = [...m];
-              updated[updated.length - 1] = { role: "assistant", content: reply };
+              updated[placeholderIndex] = { role: "assistant", content: reply };
               return updated;
             });
           }
@@ -49,6 +79,7 @@ export default function TutorTab({ materialId }) {
       setMessages(m => [...m, { role: "assistant", content: "Error — please try again." }]);
     } finally {
       setLoading(false);
+      setStreamingIndex(null);
     }
   };
 
@@ -60,7 +91,7 @@ export default function TutorTab({ materialId }) {
         </div>
         <div>
           <h3 className="font-bold">AI Tutor</h3>
-          <p className="text-xs text-gray-500 font-medium">Powered by Gemini. Knows your document.</p>
+          <p className="text-xs text-gray-500 font-medium">Knows your document.</p>
         </div>
       </div>
 
@@ -74,7 +105,21 @@ export default function TutorTab({ materialId }) {
         {messages.map((m, i) => (
           <div key={i} className={`flex flex-col max-w-[85%] ${m.role === "user" ? "ml-auto items-end" : "mr-auto items-start"}`}>
             <div className={`p-4 rounded-3xl ${m.role === "user" ? "bg-black text-white rounded-br-sm" : "bg-white border border-gray-200 text-gray-800 shadow-sm rounded-bl-sm"}`}>
-              {m.content || <div className="flex gap-1 py-1"><span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></span><span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-75"></span><span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-150"></span></div>}
+              {m.role === "assistant" && i === streamingIndex
+                ? <span>{m.content}</span>
+                : m.role === "assistant"
+                  ? (
+                    <div className="prose prose-sm max-w-none prose-p:leading-relaxed prose-p:my-1 prose-ul:my-1 prose-li:my-0">
+                      <ReactMarkdown>{m.content}</ReactMarkdown>
+                    </div>
+                  )
+                  : m.content || (
+                    <div className="flex gap-1 py-1">
+                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-75" />
+                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-150" />
+                    </div>
+                  )}
             </div>
           </div>
         ))}
@@ -89,8 +134,8 @@ export default function TutorTab({ materialId }) {
             placeholder="Ask a question..."
             className="flex-1 bg-transparent px-4 py-2 outline-none text-sm font-medium"
           />
-          <button 
-            onClick={sendMessage} 
+          <button
+            onClick={sendMessage}
             disabled={loading || !input.trim()}
             className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center disabled:opacity-50 transition-opacity"
           >

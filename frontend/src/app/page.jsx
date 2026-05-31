@@ -8,19 +8,31 @@ export default function Page() {
   const [openFaq, setOpenFaq] = useState(null);
 
   const faqs = [
-    {
-      q: "What file types are supported?",
-      a: "PDF documents, YouTube video links, and any publicly accessible web article URL.",
-    },
-    {
-      q: "How does pricing work?",
-      a: "TLDR is free to use. No account required, no credit card, no limits.",
-    },
-    {
-      q: "How smart is the interview logic?",
-      a: "The mock interview is powered by Groq's llama-3.3-70b model, tuned on your uploaded material specifically. It asks contextual questions and scores your answers in real time.",
-    },
-  ];
+  {
+    q: "What sources can I upload?",
+    a: "PDF documents (up to 20MB), YouTube video links, and any publicly accessible web article URL.",
+  },
+  {
+    q: "How many uploads do I get?",
+    a: "Each account gets 1 upload every 3 days. This keeps the service free and sustainable for everyone.",
+  },
+  {
+    q: "Do I need an account?",
+    a: "Yes. A free account is required to upload material and generate study guides.",
+  },
+  {
+    q: "What does TLDR generate from my material?",
+    a: "A full summary, 12–15 flashcards, 8–10 quiz questions (MCQ and multi-select), an AI tutor you can chat with, and a 5-question mock interview — all grounded in your uploaded content.",
+  },
+  {
+    q: "How does the mock interview work?",
+    a: "The AI asks 5 questions based specifically on your material, evaluates each answer in real time, and gives you a score and detailed feedback at the end.",
+  },
+  {
+    q: "Is my data used to train AI models?",
+    a: "No. Your uploaded content is used only to generate your study material and is never used for model training.",
+  },
+];
 
   return (
     <div className="min-h-screen bg-[#fafafa] text-gray-900 font-sans overflow-x-hidden flex flex-col">

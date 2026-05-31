@@ -1,14 +1,16 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useRequireAuth } from "@/lib/useRequireAuth";
 import { useRouter } from "next/navigation";
 import { ingestPDF, ingestYouTube, ingestURL } from "@/lib/api";
-
+import { supabase } from "@/lib/supabase";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FadeIn from "@/components/FadeIn";
 
 export default function UploadPage() {
   const router = useRouter();
+  const { user, loadingPage } = useRequireAuth(); 
   
   // --- Upload State ---
   const [tab, setTab] = useState("pdf");
@@ -18,7 +20,7 @@ export default function UploadPage() {
   const [file, setFile] = useState(null);
   const [urlInput, setUrlInput] = useState("");
   const fileRef = useRef(null);
-
+  if (loadingPage) return null;
   // --- Handlers ---
   const handleDrop = (e) => {
     e.preventDefault();
@@ -28,14 +30,20 @@ export default function UploadPage() {
     else setError("Only PDF files accepted");
   };
 
-  const submit = async () => {
+  useEffect(() => {
+  supabase.auth.getSession().then(({ data }) => {
+    if (!data.session) router.push("/auth");
+  });
+}, []);
+
+const submit = async () => {
     setError("");
     setLoading(true);
     try {
       let result;
       if (tab === "pdf") {
         if (!file) { setError("Select a PDF first"); setLoading(false); return; }
-        result = await ingestPDF(file);
+        result = await ingestPDF(file);           // no token param needed anymore
       } else if (tab === "youtube") {
         if (!urlInput) { setError("Enter a YouTube URL"); setLoading(false); return; }
         result = await ingestYouTube(urlInput);
@@ -43,7 +51,6 @@ export default function UploadPage() {
         if (!urlInput) { setError("Enter a URL"); setLoading(false); return; }
         result = await ingestURL(urlInput);
       }
-      
       router.push(`/study/${result.material_id}`);
     } catch (e) {
       const msg = e?.response?.data?.detail || "Processing failed. Check your input and try again.";
@@ -52,7 +59,6 @@ export default function UploadPage() {
       setLoading(false);
     }
   };
-
   const tabs = [
     { id: "pdf", label: "PDF DOCUMENT" },
     { id: "youtube", label: "YOUTUBE" },
