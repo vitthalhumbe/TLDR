@@ -1,11 +1,11 @@
 from pydantic import BaseModel
-from typing import Any
+from typing import Any, Literal
 
 class IngestURLRequest(BaseModel):
     url: str
 
 class TutorMessage(BaseModel):
-    role: str  # "user" or "assistant"
+    role: Literal["user", "assistant"]
     content: str
 
 class TutorChatRequest(BaseModel):

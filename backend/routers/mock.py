@@ -1,22 +1,28 @@
 import json
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from models.schemas import MockStartRequest, MockAnswerRequest
 from services.groq_service import start_mock_interview, continue_mock_interview
 from database import get_db
+from auth import get_current_user
 
 router = APIRouter(prefix="/mock", tags=["mock"])
 
-def _get_summary(material_id: str) -> str:
-    db = get_db()
+def _get_summary_owned(material_id: str, user_id: str, db) -> str:
+    mat = db.table("materials").select("user_id").eq("id", material_id).execute()
+    if not mat.data:
+        raise HTTPException(404, "Material not found")
+    if mat.data[0].get("user_id") != user_id:
+        raise HTTPException(403, "Access denied")
+
     content = db.table("processed_content").select("summary").eq("material_id", material_id).execute()
     if not content.data:
-        raise HTTPException(404, "Material not found")
+        raise HTTPException(404, "Processed content not found")
     return content.data[0]["summary"]
 
 @router.post("/start")
-async def start_session(body: MockStartRequest):
+async def start_session(body: MockStartRequest, user_id: str = Depends(get_current_user)):
     db = get_db()
-    summary = _get_summary(body.material_id)
+    summary = _get_summary_owned(body.material_id, user_id, db)
     first_question = start_mock_interview(summary)
 
     session = db.table("mock_sessions").insert({
@@ -30,19 +36,17 @@ async def start_session(body: MockStartRequest):
     }
 
 @router.post("/answer")
-async def submit_answer(body: MockAnswerRequest):
+async def submit_answer(body: MockAnswerRequest, user_id: str = Depends(get_current_user)):
     db = get_db()
-    summary = _get_summary(body.material_id)
+    summary = _get_summary_owned(body.material_id, user_id, db)
 
     messages = [{"role": m.role, "content": m.content} for m in body.messages]
     messages.append({"role": "user", "content": body.answer})
 
     response = continue_mock_interview(summary, messages)
 
-    # Check if interview is done
     done_data = None
-    lines = response.strip().split("\n")
-    for line in lines:
+    for line in response.strip().split("\n"):
         line = line.strip()
         if line.startswith("{") and "done" in line:
             try:
