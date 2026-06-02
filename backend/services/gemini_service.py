@@ -65,7 +65,6 @@ def _strip_fences(raw: str) -> str:
     return raw.strip()
 
 def process_text_with_gemini(text: str, retries: int = 3) -> dict:
-    # llama-3.3-70b-versatile has 128k context; truncate conservatively at 100k chars
     truncated = text[:16000] if len(text) > 16000 else text
     prompt = PROMPT_TEMPLATE.format(text=truncated)
 
@@ -76,7 +75,7 @@ def process_text_with_gemini(text: str, retries: int = 3) -> dict:
                 model=INGEST_MODEL,
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=4096,
-                temperature=0.3,  # low temp for structured output
+                temperature=0.3,
             )
             raw = _strip_fences(response.choices[0].message.content.strip())
             data = json.loads(raw)

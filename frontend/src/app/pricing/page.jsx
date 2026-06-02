@@ -17,8 +17,6 @@ export default function PricingPage() {
         </FadeIn>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-          
-          {/* Free Tier */}
           <FadeIn delay={200}>
             <div className="bg-white p-8 md:p-10 rounded-[2rem] shadow-md border-2 border-black flex flex-col h-full relative overflow-hidden">
               <div className="absolute top-0 right-0 bg-black text-white text-xs font-bold px-4 py-1 rounded-bl-xl">ACTIVE</div>
@@ -39,8 +37,6 @@ export default function PricingPage() {
               </button>
             </div>
           </FadeIn>
-
-          {/* Go Tier */}
           <FadeIn delay={300}>
             <div className="bg-[#f8f9fc] p-8 md:p-10 rounded-[2rem] border border-gray-200 flex flex-col h-full relative opacity-75">
               <div className="absolute top-0 right-0 bg-yellow-400 text-yellow-900 text-xs font-bold px-4 py-1 rounded-bl-xl">COMING SOON</div>
@@ -60,8 +56,6 @@ export default function PricingPage() {
               </button>
             </div>
           </FadeIn>
-
-          {/* Pro Tier */}
           <FadeIn delay={400}>
              <div className="bg-[#f8f9fc] p-8 md:p-10 rounded-[2rem] border border-gray-200 flex flex-col h-full relative opacity-75">
               <div className="absolute top-0 right-0 bg-yellow-400 text-yellow-900 text-xs font-bold px-4 py-1 rounded-bl-xl">COMING SOON</div>

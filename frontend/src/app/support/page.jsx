@@ -5,18 +5,15 @@ import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 
 export default function SupportPage() {
-  // --- State for the form ---
-  const [selectedCoffee, setSelectedCoffee] = useState(1); // 1, 2, 5, or 'custom'
+  const [selectedCoffee, setSelectedCoffee] = useState(1); 
   const [customAmount, setCustomAmount] = useState("");
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
 
-  // Calculate the total amount for the submit button
   const totalAmount = selectedCoffee === "custom" 
     ? (customAmount === "" ? 0 : parseInt(customAmount)) 
     : selectedCoffee * 100;
 
-  // Coffee cup SVG icon
   const CoffeeIcon = ({ className = "w-4 h-4" }) => (
     <svg className={className} fill="currentColor" viewBox="0 0 24 24">
       <path d="M4 19h16v2H4v-2zm14-11V6c0-1.1-.9-2-2-2H6c-1.1 0-2 .9-2 2v7c0 2.21 1.79 4 4 4h6c1.86 0 3.41-1.28 3.86-3h1.14c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2h-1zm-4 5H6V6h8v7zm3-1h-1V10h1v3z" />
@@ -25,11 +22,8 @@ export default function SupportPage() {
 
   return (
     <div className="min-h-screen bg-[#fafafa] text-gray-900 font-sans flex flex-col">
-      
-      {/* NAVBAR */}
       <Navbar/>
 
-      {/* MAIN CONTENT */}
       <main className="flex-1 flex flex-col items-center justify-center px-6 pt-32 pb-24 animate-in fade-in duration-700">
         
         <div className="text-center mb-10 max-w-md">
@@ -40,8 +34,6 @@ export default function SupportPage() {
         </div>
 
         <div className="w-full max-w-2xl bg-transparent">
-          
-          {/* Section 1: Select Amount */}
           <div className="mb-8">
             <label className="block text-sm font-bold tracking-wide mb-3">Select Amount</label>
             <div className="flex flex-wrap gap-3">
@@ -66,8 +58,6 @@ export default function SupportPage() {
                   {option.label}
                 </button>
               ))}
-
-              {/* Custom Amount Button/Input */}
               <div 
                 className={`flex items-center px-4 py-2 rounded-full border transition-all bg-white ${
                   selectedCoffee === "custom" ? "border-black ring-1 ring-black" : "border-gray-200 hover:border-gray-300"
@@ -93,7 +83,6 @@ export default function SupportPage() {
             </div>
           </div>
 
-          {/* Section 2: Name */}
           <div className="mb-8">
             <label className="block text-sm font-bold tracking-wide mb-3">Name (Optional)</label>
             <input
@@ -105,7 +94,6 @@ export default function SupportPage() {
             />
           </div>
 
-          {/* Section 3: Message */}
           <div className="mb-10">
             <label className="block text-sm font-bold tracking-wide mb-3">Personal Message (Optional)</label>
             <textarea
@@ -116,8 +104,6 @@ export default function SupportPage() {
               className="w-full px-5 py-4 rounded-[2rem] border border-gray-200 outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all bg-white text-gray-800 resize-none"
             ></textarea>
           </div>
-
-          {/* Submit Button */}
           <button 
             disabled={totalAmount <= 0}
             className="w-full bg-black text-white text-xl font-bold px-6 py-5 rounded-[2.5rem] hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-black/10"
@@ -127,8 +113,6 @@ export default function SupportPage() {
 
         </div>
       </main>
-
-      {/* DARK FOOTER */}
       <Footer/>
     </div>
   );

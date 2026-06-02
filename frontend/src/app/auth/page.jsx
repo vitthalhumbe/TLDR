@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 
 export default function AuthPage() {
   const router = useRouter();
-  const [mode, setMode] = useState("login"); // "login" | "signup"
+  const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);

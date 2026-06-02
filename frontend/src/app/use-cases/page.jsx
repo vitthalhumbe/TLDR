@@ -70,7 +70,6 @@ export default function UseCasesPage() {
                   <h3 className="text-2xl md:text-3xl font-bold mb-4">{c.title}</h3>
                   <p className="text-gray-600 leading-relaxed text-lg">{c.desc}</p>
                 </div>
-                {/* Updated Visual Icon Container */}
                 <div className="hidden md:flex w-48 h-48 bg-[#f8f9fc] rounded-full items-center justify-center border-8 border-gray-50 shrink-0">
                   {c.icon}
                 </div>

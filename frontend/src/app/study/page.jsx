@@ -12,7 +12,6 @@ export default function UploadPage() {
   const router = useRouter();
   const { user, loadingPage } = useRequireAuth(); 
   
-  // --- Upload State ---
   const [tab, setTab] = useState("pdf");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -21,7 +20,7 @@ export default function UploadPage() {
   const [urlInput, setUrlInput] = useState("");
   const fileRef = useRef(null);
   if (loadingPage) return null;
-  // --- Handlers ---
+  
   const handleDrop = (e) => {
     e.preventDefault();
     setDragOver(false);
@@ -71,7 +70,6 @@ const submit = async () => {
       <Navbar />
 
       <main className="flex-1">
-        {/* HERO & UPLOAD SECTION */}
         <section className="pt-32 pb-24 px-6 flex flex-col items-center justify-center text-center max-w-6xl mx-auto">
           <FadeIn delay={0}>
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">Start Learning</h1>
@@ -82,8 +80,6 @@ const submit = async () => {
 
           <FadeIn delay={200} className="w-full max-w-3xl">
             <div className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-6 md:p-12 text-left">
-              
-              {/* Tabs */}
               <div className="flex gap-6 md:gap-8 mb-8 border-b border-gray-100 px-2 overflow-x-auto whitespace-nowrap scrollbar-hide pb-1">
                 {tabs.map(t => (
                   <button
@@ -100,8 +96,6 @@ const submit = async () => {
                   </button>
                 ))}
               </div>
-
-              {/* PDF Drop Zone */}
               {tab === "pdf" && (
                 <div
                   onDragOver={e => { e.preventDefault(); setDragOver(true); }}
@@ -136,8 +130,6 @@ const submit = async () => {
                   )}
                 </div>
               )}
-
-              {/* URL Inputs */}
               {(tab === "youtube" || tab === "url") && (
                 <div className="py-4 md:py-8">
                   <input
@@ -171,8 +163,6 @@ const submit = async () => {
             </div>
           </FadeIn>
         </section>
-
-        {/* HOW IT WORKS SECTION (TIMELINE) */}
         <section className="py-16 md:py-24 px-6 max-w-6xl mx-auto">
           <FadeIn delay={400} className="text-center mb-16 md:mb-20">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">How it Works</h2>
@@ -180,7 +170,6 @@ const submit = async () => {
           </FadeIn>
 
           <div className="relative">
-            {/* Vertical Line for Desktop */}
             <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-gray-200 transform -translate-x-1/2"></div>
 
             {[
@@ -201,18 +190,12 @@ const submit = async () => {
                     </div>
                   )}
                 </div>
-
-                {/* Center Circle (Desktop) */}
                 <div className="absolute left-1/2 transform -translate-x-1/2 hidden md:flex w-10 h-10 bg-black text-white rounded-full items-center justify-center font-bold text-sm z-10 shadow-[0_0_0_8px_#fafafa]">
                   {step.num}
                 </div>
-
-                {/* Mobile Circle */}
                 <div className="md:hidden w-10 h-10 bg-black text-white rounded-full flex items-center justify-center font-bold text-sm mb-4 self-start shadow-[0_0_0_4px_#fafafa]">
                   {step.num}
                 </div>
-
-                {/* Right Card */}
                 <div className={`w-full md:w-[45%] flex ${step.align === "right" ? "justify-start" : "justify-end md:hidden"}`}>
                   {(step.align === "right" || true) && (
                     <div className={`bg-[#f8f9fc] rounded-3xl p-6 md:p-8 w-full md:max-w-md border border-gray-100 hover:shadow-md transition-shadow ${step.align === "left" ? "md:hidden" : ""}`}>
@@ -225,8 +208,6 @@ const submit = async () => {
             ))}
           </div>
         </section>
-
-        {/* KEY FEATURES SECTION */}
         <section className="bg-[#f2f3f5] py-16 md:py-24 px-6 rounded-t-[3rem]">
           <div className="max-w-6xl mx-auto">
             <FadeIn delay={600} className="text-center mb-12 md:mb-16">
@@ -235,7 +216,6 @@ const submit = async () => {
             </FadeIn>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Column 1 */}
               <div className="flex flex-col gap-6">
                 <FadeIn delay={700}>
                   <div className="bg-white rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow">
@@ -257,7 +237,6 @@ const submit = async () => {
                 </FadeIn>
               </div>
 
-              {/* Column 2 */}
               <div className="flex flex-col gap-6 md:mt-12">
                 <FadeIn delay={900}>
                   <div className="bg-white rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow">
@@ -279,7 +258,6 @@ const submit = async () => {
                 </FadeIn>
               </div>
 
-              {/* Column 3 */}
               <div className="flex flex-col gap-6">
                 <FadeIn delay={1100}>
                   <div className="bg-white rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow">

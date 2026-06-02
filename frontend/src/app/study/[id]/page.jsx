@@ -64,7 +64,6 @@ export default function StudyPage() {
   return (
     <div className="min-h-screen bg-[#fafafa] text-gray-900 font-sans flex flex-col overflow-x-hidden">
 
-      {/* HEADER */}
       <header className="sticky top-0 z-50 flex flex-col md:flex-row md:items-center justify-between px-6 md:px-12 py-4 bg-[#fafafa]/90 backdrop-blur-md border-b border-gray-200 gap-4">
         <div className="flex items-center gap-4">
           <button
@@ -82,8 +81,6 @@ export default function StudyPage() {
             </span>
           </div>
         </div>
-
-        {/* Scrollable Tab Bar */}
         <div className="flex overflow-x-auto whitespace-nowrap scrollbar-hide -mx-6 px-6 md:mx-0 md:px-0">
           {tabs.map(t => (
             <button
@@ -99,8 +96,6 @@ export default function StudyPage() {
           ))}
         </div>
       </header>
-
-      {/* MAIN CONTENT AREA */}
       <div className="flex-1 w-full max-w-4xl mx-auto px-6 py-12 md:py-16">
         {tab === "summary" && <SummaryTab summary={content.summary} flashcardCount={content.flashcards.length} quizCount={content.quizzes.length} />}
         {tab === "flashcards" && <FlashcardsTab flashcards={content.flashcards} />}

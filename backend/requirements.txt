@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+supabase
+google-generativeai
+groq
+PyMuPDF
+youtube-transcript-api
+beautifulsoup4
+html2text
+python-multipart
+python-jose[cryptography]
+PyJWT
+requests
